@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html style="height:100%;">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>上市公司地域分布 - 大屏数据可视化案例</title>
+		<link rel="stylesheet" type="text/css" href="css/pace.css" />
+		<script type="text/javascript" src="js/pace.min.js"></script>
+		<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+		<script src="https://webapi.amap.com/maps?v=1.4.8&key=2a5072bcb1b308fb0a64020a0f868016&plugin=AMap.ControlBar"></script>
+		<script type="text/javascript" src="js/echarts.min.js"></script>
+		<script src="js/echarts-amap.min.js" charset="UTF-8"></script>
+	</head>
+	
+	<body style="margin:0;padding:0;height:100%;">
+		<div id="mapChart" style="height:100%;min-height:450px;box-sizing:border-box;"></div>
+
+		<script type="text/javascript">
+			$(function() {
+				//初始化地图报表
+				const mapChart = echarts.init(document.getElementById("mapChart"));
+				const mapChartOpt = {
+					title: {
+						text: "上市公司地域分布",
+						top: 5,
+						left: "center",
+						textStyle: {
+							color: "#fff"
+						}
+					},
+					tooltip: {
+						trigger: 'item'
+					},
+					visualMap: {
+						type: "piecewise",
+					    left: 15,
+					    bottom: 15,
+				        itemWidth: 15,
+				        min: 1,
+				        max: 2,
+				        splitNumber: 2,
+				        pieces: [
+				        	{min:1, max:1, label:"上交所", color:"#970f48"},
+				        	{min:2, max:2, label:"深交所", color:"#f4e935"}
+				        ],
+				        textStyle: {
+				        	color: "#fff"
+				        },
+				        calculable: true,
+				        seriesIndex: [0]
+				    },
+			        amap: {
+						maxPitch: 80,
+						pitch: 60, //45 俯仰角
+						viewMode: '3D',
+						zoom: 5.5,
+						expandZoomRange: true,
+						zooms: [3, 20],
+						mapStyle: 'amap://styles/blue', //地图主题
+						center: [105,28], //中心点
+						rotation: 0,  //顺时针旋转角度
+						resizeEnable: true,
+					},
+					animation: false,
+			        series: [{
+			        	name: "上市公司地域分布",
+			        	type: "effectScatter",
+			        	coordinateSystem: "amap",
+			        	symbol: 'circle',
+			        	symbolSize: 6,
+			        	showEffectOn: 'emphasis',
+				        rippleEffect: { //涟漪特效
+				            period: 2, //特效动画时长 
+				            scale: 3, //波纹的最大缩放比例
+				            brushType: 'stroke' //波纹的绘制方式：stroke | fill
+				        },
+				        hoverAnimation: true,
+				        itemStyle: {
+				        	normal: {
+				        		color: function(params) {
+				        			const d = params.data;
+				        			if(d.exchange.toLowerCase() == "sh") {
+				        				return '#970f48';
+				        			}
+				        			return '#f4e935';
+				        		}, 
+				        		opacity: .85
+				        	}
+				        },
+				        tooltip: {
+				        	formatter: function(params) {
+				        		const poi = params.data;
+				  				let tip = poi.company + '<br />';
+				  				tip += '股票代码：' + poi.code + '<br />';
+				  				tip += '股票名称：' + poi.name + '<br />';
+				  				tip += '注册地址：' + poi.address + '<br />';
+				        		return tip;
+				        	}
+				        },
+				        zlevel: 1,
+			        	data: []
+			        }]
+				};
+				mapChart.setOption(mapChartOpt);
+				
+				//获取地图报表数据
+				$.ajax({
+					url: "data/listed-company.json",
+					dataType: "json"
+				}).done(function(data) {
+					//console.log("RespData: ", data);
+					let pointData = [];
+					for(let i=0;i<data.length;i++) {
+						const poi = data[i];
+						const v = poi.stock_exchange.toLowerCase()=="sh" ? 1 : 2;
+						pointData.push({
+							name: poi.stock_name,
+							value: [poi.lng, poi.lat, v],
+							code: poi.stock_code,
+							company: poi.company_name,
+							address: poi.registered_address,
+							exchange: poi.stock_exchange
+						});
+					}
+					mapChart.setOption({
+						series: [{
+							name: '上市公司地域分布',
+							data: pointData
+						}]
+					});
+				}).fail(function(jqXHR) {
+					console.error("Ajax Error: ", jqXHR.status, jqXHR.statusText);
+				});
+				
+				var map = mapChart.getModel().getComponent('amap').getAMap();
+				var layer = mapChart.getModel().getComponent('amap').getLayer();
+				
+				// map.map.setMapStyle([{background: 'red'}]);
+				AMap.plugin(["AMap.ControlBar"], function() {
+					var bar = new AMap.ControlBar();
+					map.addControl(bar);
+				})
+
+				AMap.plugin(["AMap.ToolBar"], function() {
+				map.addControl(new AMap.ToolBar());
+				});
+
+				AMap.event.addListener(map,'zoomend',function(){
+					console.log('当前缩放级别：' + map.getZoom());
+					console.log('俯视视角' + map.getPitch());
+					console.log('俯视视角' + map.getPitch());
+				});
+				$(window).resize(function() {
+					mapChart.resize();
+				});
+				layer.render = function() {
+					mapChart.resize();
+				}
+			});
+		</script>
+	</body>
+</html>

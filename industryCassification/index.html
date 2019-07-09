@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>行业分类</title>
+		<link rel="stylesheet" type="text/css" href="css/app.css" />
+	</head>
+	
+	<body>
+		<div id="container">
+			<div class="chart-div" id="sunChart">
+				<div class="chart-loader"><div class="loader"></div></div>
+			</div>
+		</div>
+		
+		<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript" src="js/echarts.min.js"></script>
+		<script type="text/javascript" src="js/echarts-theme-shine.js"></script>
+		<script src="http://cdn.highcharts.com.cn/highcharts/highcharts.js"></script>
+		<script src="http://cdn.hcharts.cn/highcharts/highcharts-3d.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				//初始化报表对象并指定其风格
+				const csrcChartOpt = {
+					chart: {
+						type: 'pie',
+						options3d: {
+							enabled: true,
+							alpha: 45,
+							beta: 0
+						},
+						backgroundColor: 'rgba(0,0,0,0)',
+						color: '#fff',
+					},
+					title: {
+						text: "行业分类",
+						y: 15,
+						left: "center",
+						style: {
+							color: "#fff"
+						}
+					},
+					tooltip: {
+						pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>',
+						backgroundColor: 'rgba(0,0,0,0.5)',   // 背景颜色
+						borderColor: 'rgba(0,0,0,0)',         // 边框颜色
+						borderRadius: 5,             // 边框圆角
+						shadow: false,                 // 是否显示阴影
+						animation: true,              // 是否启用动画效果
+						style: {                      // 文字内容相关样式
+							color: '#fff',
+							fontWeight: "blod",
+							fontFamily: "Courir new",
+							lineHeight: '24px'
+						}
+					},
+					// tooltip: {
+					// 	pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+					// },
+					plotOptions: {
+						pie: {
+							allowPointSelect: true,
+							cursor: 'pointer',
+							depth: 150,
+							dataLabels: {
+								enabled: true,
+								format: '{point.name}',
+								style: {
+									color: '#ffffff',
+									fontSize: '14px',
+									padding: '4px'
+								},
+							}
+						}
+					},
+					series: [{
+						type: 'pie',
+						name: 'CSRC行业分类',
+						data: [["农林牧渔",41],["采矿业",77],["制造业",999],["水电煤气",113],["建筑业",99],["批发零售",171],["运输仓储",107],["住宿餐饮",11],["信息技术",264],["金融业",91],["房地产",137],["商务服务",53],["科学服务",49],["公共环保",50],["居民服务",1],["教育",3],["卫生",10],["文化传播",58],["综合",22]],
+					}]
+				};
+				var chart = Highcharts.chart('sunChart', csrcChartOpt);
+				csrcChart.setOption(csrcChartOpt);
+				//浏览器窗口发生变化时，重置报表大小
+				$(window).resize(function() {
+					sunChart.resize();
+				});
+			});
+		</script>
+	</body>
+</html>
